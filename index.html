@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EL León Español</title>
+    <style>
+        :root {
+            --primary-color: #2c5282;
+            --secondary-color: #3182ce;
+            --text-color: #2d3748;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --nav-bg: #1a365d;
+            --gold-color: #d69e2e;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            color: var(--text-color);
+            background: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* --- BARRA SUPERIOR (AÑOS) --- */
+        .top-nav {
+            background: var(--nav-bg);
+            padding: 15px 5%;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-right: 20px;
+        }
+
+        .year-selector {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            flex-grow: 1;
+        }
+
+        .year-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .year-btn:hover { background: rgba(255, 255, 255, 0.2); }
+        
+        .year-btn.active { 
+            background: #48bb78; /* Color verde para indicar selección */
+            border-color: #48bb78;
+            color: white; 
+        }
+
+        .deselect-all-btn {
+            background: transparent;
+            color: #fc8181;
+            border: 1px solid #fc8181;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        .deselect-all-btn:hover { background: rgba(252, 129, 129, 0.1); }
+
+        /* --- BARRA SECUNDARIA (FILTROS) --- */
+        .filter-bar {
+            background: #e2e8f0;
+            padding: 12px 5%;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            border-bottom: 1px solid #cbd5e0;
+        }
+
+        .filter-label {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 0.95em;
+        }
+
+        .filter-btn {
+            background: white;
+            border: 1px solid #a0aec0;
+            padding: 6px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            color: var(--text-color);
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover { background: #edf2f7; }
+        
+        .filter-btn.active {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        .filter-btn[data-filter="siglo_oro"].active {
+            background: var(--gold-color);
+            border-color: var(--gold-color);
+        }
+
+        /* --- CONTENIDO PRINCIPAL --- */
+        .container {
+            width: 90%;
+            margin: 20px auto;
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 0;
+            gap: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .container.with-pdf { grid-template-columns: 1fr 1fr; }
+        .content-panel { min-width: 0; }
+
+        .year-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .entry-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+            border-left: 5px solid var(--secondary-color);
+        }
+
+        .entry-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .entry-title {
+            font-size: 1.5em;
+            color: var(--primary-color);
+            margin: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pdf-link {
+            background: var(--bg-color);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            text-decoration: none;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .pdf-link:hover { background: var(--border-color); }
+
+        .metadata {
+            margin-top: 10px;
+            color: #666;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .tag-oro { background: #fef08a; color: #854d0e; }
+        .tag-lit { background: #e0e7ff; color: #3730a3; }
+        .tag-mus { background: #dcfce7; color: #166534; }
+
+        .content-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            font-size: 1.1em;
+            color: var(--primary-color);
+            margin: 0 0 15px 0;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .article-card {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .article-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .article-metadata { font-size: 0.9em; color: #4a5568; }
+        .article-metadata div { margin-bottom: 4px; }
+        
+        .transcripcion {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-left: 4px solid var(--secondary-color);
+            font-family: Georgia, serif;
+            font-size: 0.95em;
+            white-space: pre-wrap;
+            color: #2d3748;
+        }
+
+        /* --- VISOR PDF --- */
+        .pdf-panel {
+            display: none;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 130px;
+            height: calc(100vh - 150px);
+            overflow: hidden;
+        }
+
+        .pdf-panel.expanded { display: block; }
+
+        .pdf-controls {
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pdf-frame {
+            width: 100%;
+            height: calc(100% - 40px);
+            border: none;
+        }
+
+        .btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 4px;
+        }
+        .btn:hover { background: rgba(255, 255, 255, 0.1); }
+
+        .page-link {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 0.9em;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .page-link:hover { text-decoration: underline; }
+
+        .loading { text-align: center; padding: 40px; font-size: 1.2em; color: #666; }
+        .error { background: #fee; color: #c00; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
+    </style>
+</head>
+
+<body>
+    <div class="top-nav">
+        <div class="nav-title">El Leon Español</div>
+        <div class="year-selector" id="yearSelector">
+            </div>
+        <button class="deselect-all-btn" onclick="deselectAllYears()">Desmarcar todos</button>
+    </div>
+
+    <div class="filter-bar">
+        <span class="filter-label">🔍 Mostrar solo:</span>
+        <button class="filter-btn active" data-filter="todos" onclick="setFilter('todos')">Todos</button>
+        <button class="filter-btn" data-filter="literatura" onclick="setFilter('literatura')">📖 Literatura</button>
+        <button class="filter-btn" data-filter="musica" onclick="setFilter('musica')">🎵 Música</button>
+        <button class="filter-btn" data-filter="siglo_oro" onclick="setFilter('siglo_oro')">👑 Siglo de Oro</button>
+    </div>
+
+    <div id="app" class="container">
+        <div class="content-panel" id="contentPanel">
+            <div class="loading">Seleccione uno o varios años en la barra superior.</div>
+        </div>
+    </div>
+
+    <script>
+        // --- VARIABLES GLOBALES ---
+        const AÑOS_DISPONIBLES = [1857, 1858, 1859]; 
+        let selectedYears = new Set(); // Guarda los años actualmente marcados
+        let loadedData = {}; // Guarda en caché los JSON descargados { '1857': {...}, '1858': {...} }
+        let currentFilter = 'todos'; 
+
+        // --- INICIALIZACIÓN ---
+        function initNavigation() {
+            const selector = document.getElementById('yearSelector');
+            selector.innerHTML = ''; 
+            
+            AÑOS_DISPONIBLES.forEach(año => {
+                const btn = document.createElement('button');
+                btn.className = 'year-btn';
+                btn.id = `btn-${año}`;
+                btn.innerText = `✓ ${año}`;
+                btn.onclick = () => toggleYear(año);
+                selector.appendChild(btn);
+            });
+
+            // Opcional: Iniciar con el primer año marcado
+            if (AÑOS_DISPONIBLES.length > 0) {
+                toggleYear(AÑOS_DISPONIBLES[0]);
+            }
+        }
+
+        // --- LÓGICA DE AÑOS (MULTISELECCIÓN) ---
+        async function toggleYear(año) {
+            const btn = document.getElementById(`btn-${año}`);
+            const app = document.getElementById('contentPanel');
+
+            closePdfViewer(); // Cerramos PDF por seguridad al cambiar el contexto
+
+            // Si el año ya estaba seleccionado, lo desmarcamos
+            if (selectedYears.has(año)) {
+                selectedYears.delete(año);
+                btn.classList.remove('active');
+                renderFilteredData();
+                return;
+            }
+
+            // Si no estaba seleccionado, lo marcamos
+            selectedYears.add(año);
+            btn.classList.add('active');
+
+            // Si es la primera vez que marcamos este año, descargamos su JSON
+            if (!loadedData[año]) {
+                app.innerHTML = `<div class="loading">Descargando datos del año ${año}...</div>`;
+                try {
+                    const urlJson = `${año}/${año}.json`;
+                    const response = await fetch(urlJson); 
+                    
+                    if (!response.ok) throw new Error(`No se encontró el archivo ${urlJson}`);
+                    
+                    const data = await response.json();
+                    loadedData[año] = data; // Guardamos en caché
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    // Si falla, revertimos el botón visualmente
+                    selectedYears.delete(año);
+                    btn.classList.remove('active');
+                    app.innerHTML = `<div class="error">Error al cargar el año ${año}:<br>${error.message}</div>`;
+                    setTimeout(renderFilteredData, 3000); // Volver a mostrar los otros años tras 3 segundos
+                    return;
+                }
+            }
+
+            // Renderizamos todo lo que esté seleccionado
+            renderFilteredData();
+        }
+
+        function deselectAllYears() {
+            selectedYears.clear();
+            document.querySelectorAll('.year-btn').forEach(btn => btn.classList.remove('active'));
+            closePdfViewer();
+            renderFilteredData();
+        }
+
+        // --- LÓGICA DE FILTROS ---
+        function setFilter(filterType) {
+            currentFilter = filterType;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if(btn.dataset.filter === filterType) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            closePdfViewer(); // Cerramos visor para evitar PDFs huérfanos
+            renderFilteredData();
+        }
+
+        // --- MOTOR DE RENDERIZADO (Procesa todos los años marcados) ---
+        function renderFilteredData() {
+            const app = document.getElementById('contentPanel');
+            
+            if (selectedYears.size === 0) {
+                app.innerHTML = `<div class="loading">No hay ningún año marcado. Seleccione los años en la barra superior.</div>`;
+                return;
+            }
+
+            let finalHTML = '';
+            let totalEntries = 0;
+
+            // Ordenamos los años seleccionados (ej: 1857, 1858...)
+            const añosOrdenados = Array.from(selectedYears).sort();
+
+            añosOrdenados.forEach(año => {
+                const data = loadedData[año];
+                if (!data || !data.datos) return;
+
+                let yearHTML = '';
+                let yearCount = 0;
+
+                data.datos.forEach(entry => {
+                    let displayEntry = JSON.parse(JSON.stringify(entry)); 
+                    let showEntry = false;
+
+                    let litArray = displayEntry.LITERATURA || displayEntry.ARTICULOS_LITERATURA || [];
+                    let musArray = displayEntry.MUSICAL || displayEntry.ARTICULOS_MUSICA || displayEntry.MUSICA || [];
+
+                    if (currentFilter === 'todos') {
+                        showEntry = true;
+                    } 
+                    else if (currentFilter === 'literatura') {
+                        if (litArray.length > 0 || displayEntry.PAGINAS_LITERATURA?.length > 0) {
+                            showEntry = true;
+                            displayEntry.MUSICAL = displayEntry.ARTICULOS_MUSICA = displayEntry.MUSICA = [];
+                        }
+                    } 
+                    else if (currentFilter === 'musica') {
+                        if (musArray.length > 0) {
+                            showEntry = true;
+                            displayEntry.LITERATURA = displayEntry.ARTICULOS_LITERATURA = displayEntry.PAGINAS_LITERATURA = [];
+                        }
+                    } 
+                    else if (currentFilter === 'siglo_oro') {
+                        let oroArray = litArray.filter(item => {
+                            let val = String(item.siglo_de_oro).toLowerCase();
+                            return val === 'sí' || val === 'si' || val === 'true';
+                        });
+
+                        if (oroArray.length > 0) {
+                            showEntry = true;
+                            displayEntry.LITERATURA = oroArray;
+                            displayEntry.ARTICULOS_LITERATURA = [];
+                            displayEntry.PAGINAS_LITERATURA = [];
+                            displayEntry.MUSICAL = displayEntry.ARTICULOS_MUSICA = displayEntry.MUSICA = [];
+                        }
+                    }
+
+                    if (showEntry) {
+                        // Importante: pasamos 'año' para que sepa dónde buscar el PDF
+                        yearHTML += renderEntryTemplate(displayEntry, año);
+                        yearCount++;
+                        totalEntries++;
+                    }
+                });
+
+                if (yearCount > 0) {
+                    finalHTML += `
+                        <div class="year-header">
+                            <span>Registros de ${año}</span>
+                            <span style="font-size: 0.6em; opacity: 0.8">${yearCount} ejemplares</span>
+                        </div>
+                        ${yearHTML}
+                    `;
+                }
+            });
+
+            if (totalEntries === 0) {
+                app.innerHTML = `<div class="loading">No hay registros que coincidan con el filtro en los años seleccionados.</div>`;
+            } else {
+                app.innerHTML = finalHTML;
+            }
+        }
+
+        // --- MANEJO DE PDF ---
+        function showPdfPage(pdfName, pageNum, pdfYear) {
+            const container = document.querySelector('.container');
+            const existingPanel = document.getElementById('pdfPanel');
+
+            if (existingPanel) {
+                if (existingPanel.getAttribute('data-pdf') === pdfName && existingPanel.getAttribute('data-page') === String(pageNum)) {
+                    container.classList.remove('with-pdf');
+                    existingPanel.remove();
+                    return;
+                }
+                existingPanel.remove();
+            }
+
+            const pdfPanel = document.createElement('div');
+            pdfPanel.id = 'pdfPanel';
+            pdfPanel.className = 'pdf-panel expanded';
+            pdfPanel.setAttribute('data-pdf', pdfName);
+            pdfPanel.setAttribute('data-page', pageNum);
+            
+            // Usamos la variable pdfYear pasada desde la tarjeta
+            const pdfUrl = `${pdfYear}/${pdfName}#page=${pageNum}`;
+            
+            pdfPanel.innerHTML = `
+                <div class="pdf-controls">
+                    <span>${pdfName} - Página ${pageNum}</span>
+                    <button class="btn" onclick="closePdfViewer()" title="Cerrar (Esc)">✕</button>
+                </div>
+                <iframe class="pdf-frame" src="${pdfUrl}"></iframe>
+            `;
+
+            container.classList.add('with-pdf');
+            container.appendChild(pdfPanel);
+        }
+
+        function closePdfViewer() {
+            const container = document.querySelector('.container');
+            const pdfPanel = document.getElementById('pdfPanel');
+            container.classList.remove('with-pdf');
+            if (pdfPanel) pdfPanel.remove();
+        }
+
+        function createPageLink(pdfName, pageNum, pdfYear) {
+            return `<a class="page-link" onclick="showPdfPage('${pdfName}', ${pageNum}, ${pdfYear})">📄 Ver Pág. ${pageNum}</a>`;
+        }
+
+        // --- PLANTILLAS DE RENDERIZADO ---
+        function renderEntryTemplate(entry, pdfYear) {
+            let litArray = entry.LITERATURA || entry.ARTICULOS_LITERATURA || [];
+            let musArray = entry.MUSICAL || entry.ARTICULOS_MUSICA || entry.MUSICA || [];
+
+            return `
+                <div class="entry-card">
+                    <div class="entry-header">
+                        <h2 class="entry-title">
+                            ${entry.titulo || entry.Título || 'Ejemplar sin título'}
+                            <a class="pdf-link" onclick="showPdfPage('${entry.PDF}', 1, ${pdfYear})">📄 Ver PDF Completo</a>
+                        </h2>
+                        <div class="metadata">
+                            <span>📅 ${entry.fecha || entry.Fecha || 'N/D'}</span>
+                            <span>📰 ${entry.numero || entry.Número || 'N/D'}</span>
+                            ${litArray.length > 0 ? `<span class="tag tag-lit">Contiene Literatura</span>` : ''}
+                            ${musArray.length > 0 ? `<span class="tag tag-mus">Contiene Música</span>` : ''}
+                        </div>
+                    </div>
+
+                    ${litArray.length > 0 ? `
+                        <div class="content-section">
+                            <h3 class="section-title">📖 Literatura</h3>
+                            ${litArray.map(item => `
+                                <div class="article-card">
+                                    <div class="article-title">${item.obra?.titulo || item.tipo || 'Referencia Literaria'}</div>
+                                    <div class="article-metadata">
+                                        ${item.obra?.autor_obra || item.autor ? `<div><strong>Autor:</strong> ${item.obra?.autor_obra || item.autor}</div>` : ''}
+                                        ${item.obra?.genero ? `<div><strong>Género:</strong> ${item.obra.genero}</div>` : ''}
+                                        
+                                        ${(String(item.siglo_de_oro).toLowerCase() === 'sí' || String(item.siglo_de_oro).toLowerCase() === 'si') 
+                                            ? `<span class="tag tag-oro" style="display:inline-block; margin-top:5px;">👑 Pertenece al Siglo de Oro</span>` 
+                                            : ''}
+                                        
+                                        ${item.paginas ? `<div style="margin-top: 10px;">${item.paginas.map(p => createPageLink(entry.PDF, p.pdf, pdfYear)).join(' | ')}</div>` : ''}
+                                    </div>
+                                    
+                                    ${item.transcripcion_integra || item.contenido ? `
+                                        <div class="transcripcion">${item.transcripcion_integra || item.contenido}</div>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+
+                    ${musArray.length > 0 ? `
+                        <div class="content-section">
+                            <h3 class="section-title">🎵 Música</h3>
+                            ${musArray.map(item => `
+                                <div class="article-card">
+                                    <div class="article-title">${item.obra_musical || item.obra || item.tipo || 'Referencia Musical'}</div>
+                                    <div class="article-metadata">
+                                        ${item.compositor ? `<div><strong>Compositor:</strong> ${item.compositor}</div>` : ''}
+                                        ${item.interprete_o_agrupacion || item.interprete ? `<div><strong>Intérprete:</strong> ${item.interprete_o_agrupacion || item.interprete}</div>` : ''}
+                                        ${item.lugar ? `<div><strong>Lugar:</strong> ${item.lugar}</div>` : ''}
+                                        
+                                        ${item.paginas ? `<div style="margin-top: 10px;">${item.paginas.map(p => createPageLink(entry.PDF, p.pdf, pdfYear)).join(' | ')}</div>` : ''}
+                                    </div>
+
+                                    ${item.contenido || item.contexto ? `
+                                        <div class="transcripcion">${item.contenido || item.contexto}</div>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // --- EVENTOS ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initNavigation();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closePdfViewer();
+        });
+    </script>
+</body>
+</html>
