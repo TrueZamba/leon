@@ -84,6 +84,82 @@
         }
         .deselect-all-btn:hover { background: rgba(252, 129, 129, 0.1); }
 
+        .header-pdf-btn {
+            background: var(--gold-color);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .header-pdf-btn:hover { background: #b7791f; }
+        .header-pdf-btn.active { background: #c05621; }
+
+        /* --- MODAL/OVERLAY PDF DE REFERENCIA --- */
+        .ref-pdf-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        .ref-pdf-overlay.visible { display: flex; }
+
+        .ref-pdf-modal {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            width: 85vw;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .ref-pdf-header {
+            background: var(--gold-color);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1em;
+        }
+
+        .ref-pdf-header span { display: flex; align-items: center; gap: 8px; }
+
+        .ref-pdf-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 1.2em;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .ref-pdf-close:hover { background: rgba(255,255,255,0.35); }
+
+        .ref-pdf-frame {
+            width: 100%;
+            flex: 1;
+            border: none;
+        }
+
         /* --- BARRA SECUNDARIA (FILTROS) --- */
         .filter-bar {
             background: #e2e8f0;
@@ -314,6 +390,20 @@
         <div class="year-selector" id="yearSelector">
             </div>
         <button class="deselect-all-btn" onclick="deselectAllYears()">Desmarcar todos</button>
+        <button class="header-pdf-btn" id="refPdfBtn" onclick="toggleRefPdf()" title="Ver documento de referencia: Siglo de Oro y Filología">
+            📜 Recopilación PDF — Siglo de Oro
+        </button>
+    </div>
+
+    <!-- Modal visor PDF de referencia -->
+    <div class="ref-pdf-overlay" id="refPdfOverlay" onclick="closeRefPdfOnOverlay(event)">
+        <div class="ref-pdf-modal">
+            <div class="ref-pdf-header">
+                <span>📜 siglo_de_oro_filologia.pdf — Documento de referencia</span>
+                <button class="ref-pdf-close" onclick="closeRefPdf()" title="Cerrar (Esc)">✕</button>
+            </div>
+            <iframe class="ref-pdf-frame" id="refPdfFrame" src="siglo_de_oro_filologia.pdf"></iframe>
+        </div>
     </div>
 
     <div class="filter-bar">
@@ -633,8 +723,36 @@
         });
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closePdfViewer();
+            if (e.key === 'Escape') {
+                closePdfViewer();
+                closeRefPdf();
+            }
         });
+
+        // --- VISOR PDF DE REFERENCIA (SIGLO DE ORO) ---
+        function toggleRefPdf() {
+            const overlay = document.getElementById('refPdfOverlay');
+            const btn = document.getElementById('refPdfBtn');
+            const isVisible = overlay.classList.contains('visible');
+            if (isVisible) {
+                closeRefPdf();
+            } else {
+                overlay.classList.add('visible');
+                btn.classList.add('active');
+            }
+        }
+
+        function closeRefPdf() {
+            document.getElementById('refPdfOverlay').classList.remove('visible');
+            document.getElementById('refPdfBtn').classList.remove('active');
+        }
+
+        function closeRefPdfOnOverlay(event) {
+            // Solo cerrar si el clic fue en el overlay, no en el modal interior
+            if (event.target === document.getElementById('refPdfOverlay')) {
+                closeRefPdf();
+            }
+        }
     </script>
 </body>
 </html>
